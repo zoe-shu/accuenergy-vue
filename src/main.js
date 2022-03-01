@@ -15,6 +15,9 @@ import MapPage from './components/MapPage.vue'
 import MapContainer from './components/MapContainer.vue'
 import SearchBox from './components/SearchBox.vue'
 import LocationList from './components/LocationList.vue'
+import CustomMap from './components/CustomMap'
+import GoogleMapLoader from './components/GoogleMapLoader'
+import MapMarkers from './components/MapMarkers'
 
 const app = createApp(App)
 
@@ -26,7 +29,10 @@ app
   .component('MapPage', MapPage)
   .component('MapContainer', MapContainer)
   .component('SearchBox', SearchBox)
-  .component('LocationList', LocationList);
+  .component('LocationList', LocationList)
+  .component('CustomMap', CustomMap)
+  .component('GoogleMapLoader', GoogleMapLoader)
+  .component('MapMarkers', MapMarkers)
   
 app.config.productionTip = false
 app.use(Antd);
