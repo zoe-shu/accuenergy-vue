@@ -3,8 +3,9 @@
 ## Project Assumption
 ```
 1. assume using Vue3
-2. assume using autocomplete for the search input
-3. assume requirement d3 means 'delete records by multi-select
+2. assume using yarn
+3. assume using autocomplete for the search input
+4. assume requirement d3 means 'delete records by multi-select
 ```
 ## Technical issues
 ```
