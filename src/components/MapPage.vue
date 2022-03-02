@@ -1,11 +1,12 @@
 <template>
-    <a-row>
-      <a-col :span="2">
+  <div class="map-page-wrap">
+    <a-row align="center" justify="space-between" class="search-bar-container">
+      <a-col flex="50px">
         <a-button type="primary" @click="getCurrentLocation()" :loading="isLoadingCurrent">
           <font-awesome-icon v-if="!isLoadingCurrent" :icon="['fa', 'location-crosshairs']" />
         </a-button>
       </a-col>
-      <a-col :span="20">
+      <a-col flex="auto">
         <GMapAutocomplete
           ref="autocomplete"
           style="width:100%"
@@ -16,45 +17,54 @@
         >
         </GMapAutocomplete>
       </a-col>
-      <a-col>
+      <a-col flex="50px" align="right">
         <a-button type="primary" @click="onSubmitAutocomplete()" :loading="isLoadingSearch">
           <font-awesome-icon :icon="['fa', 'magnifying-glass']" />
         </a-button>
       </a-col>
     </a-row>
 
-     <GMapMap
+    <GMapMap
       :center="center"
       :zoom="14"
-      class="g-map"
+      class="map-container"
     >
-    <GMapCluster>
-      <GMapMarker 
-          v-if="current"
-          :position="current.position"
-          :clickable="true"
-          @click="openInfoWindow(current.id)" >
-          <GMapInfoWindow :opened="current.id">
-            <div> {{ current.label }} </div>
-          </GMapInfoWindow>
-        </GMapMarker>
-      <GMapMarker 
-          :key="index"
-          v-for="(m, index) in markers"
-          :position="m.position"
-          :clickable="true"
-          @click="openInfoWindow(m.id)" >
-          <GMapInfoWindow :opened="openedMarkerID === m.id">
-            <div> {{ m.label }} </div>
-          </GMapInfoWindow>
-        </GMapMarker>
-      </GMapCluster>
+      <GMapCluster>
+        <GMapMarker 
+            v-if="current"
+            :position="current.position"
+            :clickable="true"
+            @click="openInfoWindow(current.id)" >
+            <GMapInfoWindow :opened="current.id">
+              <div> {{ current.label }} </div>
+            </GMapInfoWindow>
+          </GMapMarker>
+        <GMapMarker 
+            :key="index"
+            v-for="(m, index) in markers"
+            :position="m.position"
+            :clickable="true"
+            @click="openInfoWindow(m.id)" >
+            <GMapInfoWindow :opened="openedMarkerID === m.id">
+              <div> {{ m.label }} </div>
+            </GMapInfoWindow>
+          </GMapMarker>
+        </GMapCluster>
     </GMapMap>
 
-    <div>
-      <a-button :type="isDisableDelete? 'default':'danger'" @click="clearLocList()" :disabled="isDisableDelete">
+    <div class="location-list-container">
+      <a-button class="clear-button"
+        :type="isDisableDelete? 'default':'danger'" 
+        @click="clearLocList()" 
+        :disabled="isDisableDelete"
+      >
         Delete 
       </a-button>
+      <a-row class="table-header-container" v-if="currentPageContent.length > 0">
+        <a-col :xs="0" :sm="11" :lg="14">Location</a-col>
+        <a-col :xs="0" :sm="6" :lg="5">Time Zone</a-col>
+        <a-col :xs="0" :sm="7" :lg="5">Local Time</a-col>
+      </a-row>
       <a-row>
         <a-col :span="24">
           <a-checkbox v-for="marker in currentPageContent" 
@@ -62,14 +72,15 @@
             @change="onCheckLoc" :value="marker.id"
           >
             <a-row>
-              <a-col :span="14">{{ marker.label }}</a-col>
-              <a-col :span="5">{{ marker.timezoneId }}</a-col>
-              <a-col :span="5">{{ marker.localTime }}</a-col>
+              <a-col :xs="24" :sm="11" :lg="14">{{ marker.label }}</a-col>
+              <a-col :xs="24" :sm="6" :lg="5">{{ marker.timezoneId }}</a-col>
+              <a-col :xs="24" :sm="7" :lg="5">{{ marker.localTime }}</a-col>
             </a-row>
           </a-checkbox>
         </a-col>
       </a-row>
-    <a-pagination simple :page-size="pageSize" :total="markersTotal" @change="onChangePage" />
+      <a-pagination simple :page-size="pageSize" :total="markersTotal" @change="onChangePage" />
+    </div>
   </div>
 </template>
 
@@ -117,8 +128,8 @@ export default {
       // Click to select first result
       const el = this.$refs.autocomplete.$refs.input
       const ev = new Event('keydown')
-      ev.which = 13
-      ev.keyCode = 13
+      ev.which = 13 //Enter key
+      ev.keyCode = 13 //Enter key
       return el.dispatchEvent(ev)
     },
     openInfoWindow(id){
@@ -214,6 +225,7 @@ export default {
     // Pagination
     onChangePage(pageNumber) {
       this.selectedLoc = [];
+      this.isDisableDelete = this.selectedLoc.length <= 0 ? true : false
       this.currentPage = pageNumber;
       this.indexStart = (pageNumber - 1) * this.pageSize;
       this.indexEnd = pageNumber * this.pageSize;
@@ -228,12 +240,29 @@ export default {
 </script>
 
 <style >
-.g-map{
-  width:100%;
-  height:300px;
+.map-page-wrap{
+  padding: 1rem;
+}
+.search-bar-container, .map-container{
+  margin-bottom: 1rem;
+}
+.pac-target-input{
+  margin: 0;
+  height: 100%;
+}
+.map-container{
+  width: 100%;
+  height: 300px;
+}
+.clear-button{
+  margin-bottom: .5rem;
+}
+.table-header-container{
+  font-weight: bold;
 }
 .ant-checkbox-wrapper.map-checkbox{
   display: flex;
+  margin-bottom: 0.5rem;
 }
 .ant-checkbox-wrapper.map-checkbox .ant-checkbox + span{
   display: inline-block;
