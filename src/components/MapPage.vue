@@ -2,7 +2,7 @@
   <div class="map-page-wrap">
     <a-row align="center" justify="space-between" class="search-bar-container">
       <a-col flex="50px">
-        <a-button type="primary" @click="getCurrentLocation()" :loading="isLoadingCurrent">
+        <a-button @click="getCurrentLocation()" :loading="isLoadingCurrent">
           <font-awesome-icon v-if="!isLoadingCurrent" :icon="['fa', 'location-crosshairs']" />
         </a-button>
       </a-col>
@@ -36,7 +36,7 @@
             :clickable="true"
             @click="openInfoWindow(current.id)" >
             <GMapInfoWindow :opened="current.id">
-              <div> {{ current.label }} </div>
+              <div>{{ current.label }}</div>
             </GMapInfoWindow>
           </GMapMarker>
         <GMapMarker 
@@ -46,25 +46,30 @@
             :clickable="true"
             @click="openInfoWindow(m.id)" >
             <GMapInfoWindow :opened="openedMarkerID === m.id">
-              <div> {{ m.label }} </div>
+              <div>{{ m.label }}</div>
             </GMapInfoWindow>
           </GMapMarker>
         </GMapCluster>
     </GMapMap>
 
     <div class="location-list-container">
-      <a-button class="clear-button"
+      <a-row class="table-header-container" v-if="currentPageContent.length > 0" >
+        <a-col style="margin-right:1rem">
+          <span style="font-weight:bold">Time Zone: </span>
+          <span>{{ timeZone }}</span>
+          </a-col>
+        <a-col>
+          <span style="font-weight:bold">Local Time: </span>
+          <span>{{ localTime }}</span>
+        </a-col>
+      </a-row>
+       <a-button class="clear-button"
         :type="isDisableDelete? 'default':'danger'" 
         @click="clearLocList()" 
         :disabled="isDisableDelete"
       >
         Delete 
       </a-button>
-      <a-row class="table-header-container" v-if="currentPageContent.length > 0">
-        <a-col :xs="0" :sm="11" :lg="14">Location</a-col>
-        <a-col :xs="0" :sm="6" :lg="5">Time Zone</a-col>
-        <a-col :xs="0" :sm="7" :lg="5">Local Time</a-col>
-      </a-row>
       <a-row>
         <a-col :span="24">
           <a-checkbox v-for="marker in currentPageContent" 
@@ -72,14 +77,17 @@
             @change="onCheckLoc" :value="marker.id"
           >
             <a-row>
-              <a-col :xs="24" :sm="11" :lg="14">{{ marker.label }}</a-col>
-              <a-col :xs="24" :sm="6" :lg="5">{{ marker.timezoneId }}</a-col>
-              <a-col :xs="24" :sm="7" :lg="5">{{ marker.localTime }}</a-col>
+              <a-col >{{ marker.label }}</a-col>
             </a-row>
           </a-checkbox>
         </a-col>
       </a-row>
-      <a-pagination simple :page-size="pageSize" :total="markersTotal" @change="onChangePage" />
+      <a-pagination simple 
+        :page-size="pageSize" 
+        :default-current="currentPage" 
+        :total="markersTotal" 
+        @change="onChangePage" 
+      />
     </div>
   </div>
 </template>
@@ -100,16 +108,17 @@ export default {
       markers: [],
       current: null,
       places: [],
-      selectedAddress:'',
+      selectedAddress: '',
       selectedLoc: [],
-      pageNumber: 1,
       pageSize: 10,
       markersTotal: 0,
       openedMarkerID: null,
-      currentPage:1,
+      currentPage: 1,
       currentPageContent: [],
       indexStart: 0,
       indexEnd: this.pageSize,
+      timeZone: '',
+      localTime: '',
       isLoadingCurrent,
       isLoadingSearch,
       isDisableDelete,
@@ -140,34 +149,33 @@ export default {
       fetch(api)
       .then(response => response.json())
       .then(data => { 
-        let update = this.markers.find(item => item.id === marker.id);
-        update.timezoneId = data.timeZoneId;
-        update.localTime = moment().tz(update.timezoneId).format("YYYY-MM-DD HH:mm:ss");
+        let date =  moment().tz(data.timezoneId);
+        this.timeZone = data.timeZoneId;
+        this.localTime = moment(date).format("YYYY-MM-DD HH:mm:ss");
       });
     },
     addMarker() {
       if (this.currentPlace) {
-        const marker = {
-          id: this.currentPlace.place_id, 
-          value: this.currentPlace.place_id,
-          position: {
-            lat: this.currentPlace.geometry.location.lat(),
-            lng: this.currentPlace.geometry.location.lng(),
-          }, 
-          label: this.currentPlace.name,
-          timezone: '',
-          localTime: '',
+        if(!this.markers.find(marker => marker.id === this.currentPlace.place_id)){
+          const marker = {
+            id: this.currentPlace.place_id, 
+            value: this.currentPlace.place_id,
+            position: {
+              lat: this.currentPlace.geometry.location.lat(),
+              lng: this.currentPlace.geometry.location.lng(),
+            }, 
+            label: this.currentPlace.name,
+          }
+          this.getTimeZone(marker);
+          this.markers.unshift(marker);
+          this.openInfoWindow(this.currentPlace.place_id);
+          this.center = marker.position;
+          this.places.push(this.currentPlace);
+          this.currentPlace = null;
         }
-        this.getTimeZone(marker);
-        this.markers.unshift(marker);
-        this.openInfoWindow(this.currentPlace.place_id);
-        this.center = marker.position;
-        this.places.push(this.currentPlace);
-        this.currentPlace = null;
-        
       }
       this.markersTotal = this.markers.length;
-      this.isDisableDelete = this.selectedLoc.length <= 0 ? true : false
+      this.isDisableDelete = this.selectedLoc.length <= 0 ? true : false;
       this.updateContent();
     },
     getCurrentLocation() {
@@ -202,13 +210,13 @@ export default {
 
     // Location List
     onCheckLoc(event) {
-      const index = this.selectedLoc.indexOf(event.target.value);
-      if(index > 0){
-        this.selectedLoc.splice(index,1);
-      }else{
+      if(event.target.checked){
         this.selectedLoc.push(event.target.value);
+      }else{
+        const index = this.selectedLoc.indexOf(event.target.value);
+        this.selectedLoc.splice(index, 1);
       }
-      this.isDisableDelete = this.selectedLoc.length <= 0 ? true : false
+      this.isDisableDelete = this.selectedLoc.length <= 0 ? true : false;
     },
     clearLocList(){
       if(this.selectedLoc.length > 0){
@@ -217,7 +225,12 @@ export default {
         })
         this.selectedLoc = [];
         this.markersTotal = this.markers.length;
-        this.updateContent();
+        if(this.currentPage > 1){
+          while( Math.ceil(this.markersTotal / this.pageSize) < this.currentPage ){
+            this.currentPage -= 1;
+          }
+        }
+        this.onChangePage(this.currentPage);       
       }
       this.isDisableDelete = this.selectedLoc.length <= 0 ? true : false
     },
@@ -225,10 +238,10 @@ export default {
     // Pagination
     onChangePage(pageNumber) {
       this.selectedLoc = [];
-      this.isDisableDelete = this.selectedLoc.length <= 0 ? true : false
+      this.isDisableDelete = this.selectedLoc.length <= 0 ? true : false;
       this.currentPage = pageNumber;
       this.indexStart = (pageNumber - 1) * this.pageSize;
-      this.indexEnd = pageNumber * this.pageSize;
+      this.indexEnd = (this.markersTotal > this.pageSize || this.markersTotal == 0) ? pageNumber * this.pageSize : this.markersTotal;
       this.updateContent();
     },
     updateContent(){
@@ -258,7 +271,10 @@ export default {
   margin-bottom: .5rem;
 }
 .table-header-container{
-  font-weight: bold;
+  margin-bottom: 1rem;
+}
+.location-list-container .ant-checkbox-inner{
+  top: 4px;
 }
 .ant-checkbox-wrapper.map-checkbox{
   display: flex;
