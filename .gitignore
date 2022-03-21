@@ -1,3 +1,4 @@
+*.code-workspace
 /src/config.json
 .DS_Store
 node_modules
