@@ -149,7 +149,7 @@ export default {
       fetch(api)
       .then(response => response.json())
       .then(data => { 
-        let date =  moment().tz(data.timezoneId);
+        let date =  moment(moment().tz(data.timeZoneId));
         this.timeZone = data.timeZoneId;
         this.localTime = moment(date).format("YYYY-MM-DD HH:mm:ss");
       });
