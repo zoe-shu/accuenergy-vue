@@ -1,10 +1,10 @@
 # accuenergy-vue
 ## Preview 
-```
+
 ![UI](https://github.com/zoe-shu/googlemap-vue-test/ui-preview.png)
 ![Display the time zone and local time of the latest searched location](https://github.com/zoe-shu/googlemap-vue-test/timezone-preview.png)
 
-```
+
 ## Project Requirements
 ```
 Create a web page includes: 
