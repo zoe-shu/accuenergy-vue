@@ -1,5 +1,10 @@
 # accuenergy-vue
+## Preview 
+```
+ui-preview.png
+timezone-preview.png
 
+```
 ## Project Requirements
 ```
 Create a web page includes: 
