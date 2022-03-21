@@ -1,8 +1,8 @@
 # accuenergy-vue
 ## Preview 
 ```
-./ui-preview.png
-./timezone-preview.png
+![This is an image](./ui-preview.png)
+![This is an image](./timezone-preview.png)
 
 ```
 ## Project Requirements
