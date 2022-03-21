@@ -1,8 +1,8 @@
 # accuenergy-vue
 ## Preview 
 ```
-![This is an image](./ui-preview.png)
-![This is an image](./timezone-preview.png)
+![UI](https://github.com/zoe-shu/googlemap-vue-test/ui-preview.png)
+![Display the time zone and local time of the latest searched location](https://github.com/zoe-shu/googlemap-vue-test/timezone-preview.png)
 
 ```
 ## Project Requirements
